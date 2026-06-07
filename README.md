@@ -40,7 +40,7 @@ Return this
   {"model": "gpt-3.5", "provider": "openai", "count": 12}
 ]
 
-
+<!--
 
 ### Affected Components
 
@@ -171,3 +171,4 @@ Using UMPIRE framework (adapted):
 - [Link to helpful documentation]
 - [Tutorial or Stack Overflow post that helped]
 - [GitHub issues or discussions that helped]
+-->
