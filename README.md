@@ -2,30 +2,45 @@
 
 **Contribution Number:** 1  
 **Student:** Suhas Ramesh Vittal  
-**Issue:** [GitHub issue link]  
-**Status:** [Phase I / Phase II / Phase III / Phase IV] [In Progress / Complete]
+**Issue:** https://github.com/traceloop/opentelemetry-mcp-server/issues/11 
+**Status:** Phase I  In Progress
 
 ---
 
 ## Why I Chose This Issue
 
-[1-2 paragraphs explaining why this issue interests you, how it matches your skills/learning goals, what you hope to learn]
+I chose this issue since it also follows a critical pattern seen in data engineering projects. It is a good example of data aggregation to avoid sort in Apache Spark execution.
 
 ---
 
 ## Understanding the Issue
 
+
 ### Problem Description
 
-[In your own words, what's broken or missing?]
+This issue aims to reduce the number of tokens consumed by the observability data when queried by the AI agents.
+For example, if you query 100 traces, you get 100 objects each repeating the same field names like "model", "provider", 
+"count" over and over. That's a lot of wasted tokens.
+
 
 ### Expected Behavior
+Return this
 
-[What should happen?]
+{
+  "columns": ["model", "provider", "count"],
+  "rows": [["gpt-4", "openai", 48], ["gpt-3.5", "openai", 12]]
+}
+
 
 ### Current Behavior
+ Instead of returning this:
 
-[What actually happens?]
+[
+  {"model": "gpt-4", "provider": "openai", "count": 48},
+  {"model": "gpt-3.5", "provider": "openai", "count": 12}
+]
+
+
 
 ### Affected Components
 
