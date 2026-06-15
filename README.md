@@ -9,8 +9,8 @@
 
 ---
 
-Phase I -> https://github.com/Suhasrv2403/su26-ai301-contribution/blob/main/README.md
-Phase II -> https://github.com/Suhasrv2403/opentelemetry-mcp-server/blob/feat/tool-response-compression/CONTRIBUTION.md
+**Phase I** -> https://github.com/Suhasrv2403/su26-ai301-contribution/blob/main/README.md
+**Phase II** -> https://github.com/Suhasrv2403/opentelemetry-mcp-server/blob/feat/tool-response-compression/CONTRIBUTION.md
 
 ## Why I Chose This Issue
 
