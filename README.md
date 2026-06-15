@@ -1,20 +1,24 @@
-# Contribution [1]: [Issue Title]
+# AI301 Contribution
+## Contribution [1]: Feature Proposal: Tool Response Compression for Token Optimization
+## Contribution [2] : Issue Recreation: Reducing Token Waste in AI Agent Workflows
 
-**Contribution Number:** 1  
+**Contribution Number:** 2  
 **Student:** Suhas Ramesh Vittal  
 **Issue:** https://github.com/traceloop/opentelemetry-mcp-server/issues/11 
-**Status:** Phase I  In Progress
+**Status:** Phase II Completed
 
 ---
 
+Phase I -> https://github.com/Suhasrv2403/su26-ai301-contribution/blob/main/README.md
+Phase II -> https://github.com/Suhasrv2403/opentelemetry-mcp-server/blob/feat/tool-response-compression/CONTRIBUTION.md
+
 ## Why I Chose This Issue
 
-I chose this issue since it also follows a critical pattern seen in data engineering projects. It is a good example of data aggregation to avoid sort in Apache Spark execution.
+I chose this issue because it addresses a real efficiency problem I find compelling: reducing token waste in AI agent workflows.
 
 ---
 
 ## Understanding the Issue
-
 
 ### Problem Description
 
@@ -22,29 +26,31 @@ This issue aims to reduce the number of tokens consumed by the observability dat
 For example, if you query 100 traces, you get 100 objects each repeating the same field names like "model", "provider", 
 "count" over and over. That's a lot of wasted tokens.
 
-
 ### Expected Behavior
-Return this
+Return this:
 
+```json
 {
   "columns": ["model", "provider", "count"],
   "rows": [["gpt-4", "openai", 48], ["gpt-3.5", "openai", 12]]
 }
-
+```
 
 ### Current Behavior
- Instead of returning this:
+Instead of returning this:
 
+```json
 [
   {"model": "gpt-4", "provider": "openai", "count": 48},
   {"model": "gpt-3.5", "provider": "openai", "count": 12}
 ]
-
-<!--
+```
 
 ### Affected Components
 
-[Which parts of the codebase are involved?]
+- `src/opentelemetry_mcp/tools/` — all 8 tool files that return arrays of objects
+- `src/opentelemetry_mcp/config.py` — ServerConfig for the compression toggle
+- `src/opentelemetry_mcp/tools/compression.py` — new utility file
 
 ---
 
@@ -52,19 +58,25 @@ Return this
 
 ### Environment Setup
 
-[Notes on setting up your local development environment - challenges you faced, how you solved them]
+- Cloned the repo and ran `uv sync` to install dependencies
+- Had to install `uv` first since it wasn't available globally (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
+- Python version pinned to 3.13.1 via `.python-version` — uv handled this automatically
+- All commands must be prefixed with `uv run` (e.g. `uv run pytest`, `uv run mypy src/`)
+- Resolved 9 ruff import ordering errors across tool files using `uv run ruff check --fix .`
+- Fixed mypy errors caused by inconsistent attribute names (`config.compression` vs `config.compress_responses`) across tool files
 
 ### Steps to Reproduce
 
-1. [Step 1]
-2. [Step 2]
-3. [Observed result]
+1. Clone the repository: `git clone https://github.com/traceloop/opentelemetry-mcp-server.git`
+2. Install dependencies: `uv sync`
+3. Query any tool (e.g. `list_llm_models`) with multiple results
+4. Observe the JSON response — every object in the array repeats the same field names (`model`, `provider`, `count`, etc.) for every row
+5. For a response with 100 traces, field names are duplicated 100 times — wasting 30-60% of tokens on every AI agent call
 
 ### Reproduction Evidence
 
-- **Commit showing reproduction:** [Link to commit in your fork]
-- **Screenshots/logs:** [If applicable]
-- **My findings:** [What you discovered during reproduction]
+- **Branch:** https://github.com/Suhasrv2403/opentelemetry-mcp-server/tree/feat/tool-response-compression
+- **My findings:** Tool responses return arrays of uniform objects where field names repeat on every row. The more rows returned, the more tokens wasted. This directly impacts AI agent API cost, latency, and context window utilization.
 
 ---
 
@@ -72,30 +84,34 @@ Return this
 
 ### Analysis
 
-[Your analysis of the root cause - what's causing the issue?]
+The root cause is that all 8 tool functions build a result dict containing a list of uniform objects and serialize it directly with `json.dumps()`. There is no compression step. Field names are repeated for every row even though they are identical across all objects.
 
 ### Proposed Solution
 
-[High-level description of your fix approach]
+Introduce a `compact_json()` utility that recursively converts uniform arrays of dicts into a column/row tabular format, and hook it into all 8 tool files before the final `json.dumps()` call.
 
 ### Implementation Plan
 
-Using UMPIRE framework (adapted):
+**Understand:** Tool responses return arrays of uniform objects where field names repeat on every row, wasting 30-60% of tokens in AI agent workflows.
 
-**Understand:** [Restate the problem]
+**Match:** This maps to a classic data compression pattern — the same approach used in columnar data formats like Apache Parquet and Arrow where repeated keys are deduplicated.
 
-**Match:** [What similar patterns/solutions exist in the codebase?]
+**Plan:**
+1. Create `src/opentelemetry_mcp/tools/compression.py` with `compact_json()` — a recursive utility that converts uniform arrays of dicts into `{"columns": [...], "rows": [...]}` format
+2. Add `compress_responses: bool = True` to `ServerConfig` in `config.py`, reading from `COMPRESS_RESPONSES` env var
+3. Hook `compact_json()` into 8 high-impact tool files before the final `json.dumps()` call
+4. Write unit tests in `tests/test_compression.py` covering basic compression, pass-through edge cases, nested structures, threshold behavior, and losslessness
+5. Document the config option in `.env.example`
 
-**Plan:** [Step-by-step implementation plan]
-1. [Modify file X to do Y]
-2. [Add function Z]
-3. [Update tests]
+**Implement:** https://github.com/Suhasrv2403/opentelemetry-mcp-server/tree/feat/tool-response-compression
 
-**Implement:** [Link to your branch/commits as you work]
+**Review:**
+- ✅ `uv run ruff format .`
+- ✅ `uv run ruff check .`
+- ✅ `uv run mypy src/`
+- ✅ `uv run pytest`
 
-**Review:** [Self-review checklist - does it follow the project's contribution guidelines?]
-
-**Evaluate:** [How will you verify it works?]
+**Evaluate:** 17 new unit tests added, all passing. 92 total tests pass, 2 skipped (pre-existing).
 
 ---
 
@@ -103,50 +119,63 @@ Using UMPIRE framework (adapted):
 
 ### Unit Tests
 
-- [ ] Test case 1: [Description]
-- [ ] Test case 2: [Description]
-- [ ] Test case 3: [Description]
+- ✅ Basic compression of uniform array
+- ✅ Losslessness — reconstructed data equals original
+- ✅ Non-uniform keys pass through unchanged
+- ✅ Missing keys pass through unchanged
+- ✅ Empty array pass through
+- ✅ Single item list pass through
+- ✅ Non-dict list pass through
+- ✅ Primitives pass through unchanged
+- ✅ Below threshold pass through
+- ✅ Nested dict with array compresses recursively
+- ✅ Multiple nested arrays compress independently
+- ✅ Deeply nested compression
+- ✅ Custom threshold respected
+- ✅ Threshold zero always compresses
+- ✅ Real search_traces response shape
+- ✅ Real list_models response shape
+- ✅ compress_responses disabled skips compression
 
 ### Integration Tests
 
-- [ ] Integration scenario 1
-- [ ] Integration scenario 2
+- No existing integration tests were broken by these changes
+- Tool files operate at 0% coverage in existing integration tests — they mock at the backend level
 
 ### Manual Testing
 
-[What you tested manually and results]
+- Ran full test suite before and after changes — 77 tests passing before, 92 passing after (17 new)
+- Verified ruff, mypy, and pytest all pass cleanly
 
 ---
 
 ## Implementation Notes
 
-### Week [X] Progress
+### Week 1 Progress
 
-[What you built this week, challenges faced, decisions made]
-
-### Week [Y] Progress
-
-[Continue documenting as you work]
+- Identified and claimed issue #11
+- Read all 8 tool files to understand response shapes
+- Implemented `compact_json()` with recursive dict traversal, uniform key detection, and threshold-based compression
+- Added `compress_responses` toggle to `ServerConfig`
+- Hooked compression into all 8 tool files via `config` parameter passed from `server.py`
+- Wrote 17 unit tests, all passing
+- Resolved ruff import ordering errors and mypy attribute name inconsistencies
 
 ### Code Changes
 
-- **Files modified:** [List]
-- **Key commits:** [Links to important commits]
-- **Approach decisions:** [Why you chose certain approaches]
+- **Files modified:** `config.py`, `server.py`, `tools/list_models.py`, `tools/search.py`, `tools/search_spans.py`, `tools/errors.py`, `tools/expensive_traces.py`, `tools/slow_traces.py`, `tools/list_llm_tools.py`, `tools/trace.py`
+- **Files created:** `tools/compression.py`, `tests/test_compression.py`, `CONTRIBUTION.md`
+- **Approach decisions:** Used `ServerConfig` parameter injection rather than global import to avoid circular imports; chose savings-ratio threshold over min-rows for more accurate compression gating
 
 ---
 
 ## Pull Request
 
-**PR Link:** [GitHub PR URL when submitted]
+**PR Link:** [To be submitted — Phase III]
 
-**PR Description:** [Draft or final PR description - much of the content above can be adapted]
+**PR Description:** [To be added on PR submission]
 
-**Maintainer Feedback:**
-- [Date]: [Summary of feedback received]
-- [Date]: [How you addressed it]
-
-**Status:** [Awaiting review / Iterating / Approved / Merged]
+**Status:** Phase II Complete — implementation done, PR pending
 
 ---
 
@@ -154,21 +183,26 @@ Using UMPIRE framework (adapted):
 
 ### Technical Skills Gained
 
-[What you learned technically]
+- Working with `uv` as a Python package manager
+- Recursive JSON transformation patterns
+- MyPy strict type checking in a real codebase
+- Pydantic `BaseModel` configuration with environment variable parsing
 
 ### Challenges Overcome
 
-[What was hard and how you solved it]
+- Import ordering errors across 9 files — resolved with `uv run ruff check --fix .`
+- Inconsistent attribute names across tool files caught by mypy
+- Threshold logic bug where `threshold=0.0` wasn't compressing small arrays — fixed by switching from absolute size comparison to savings ratio
 
 ### What I'd Do Differently Next Time
 
-[Reflection on your process]
+- Establish the attribute name convention before touching multiple files to avoid mypy errors
+- Write the utility function and tests first before hooking into tool files
 
 ---
 
 ## Resources Used
 
-- [Link to helpful documentation]
-- [Tutorial or Stack Overflow post that helped]
-- [GitHub issues or discussions that helped]
--->
+- https://github.com/traceloop/opentelemetry-mcp-server/issues/11
+- https://traceloop.com/docs/openllmetry/contributing/overview
+- https://docs.astral.sh/uv/
