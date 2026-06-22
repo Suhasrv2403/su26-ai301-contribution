@@ -5,13 +5,13 @@
 **Contribution Number:** 2  
 **Student:** Suhas Ramesh Vittal  
 **Issue:** https://github.com/traceloop/opentelemetry-mcp-server/issues/11 
-**Status:** Phase II Completed
+**Status:** Phase III Completed
 
 ---
 
 **Phase I** -> https://github.com/Suhasrv2403/su26-ai301-contribution/blob/main/README.md
 **Phase II** -> https://github.com/Suhasrv2403/opentelemetry-mcp-server/blob/feat/tool-response-compression/CONTRIBUTION.md
-
+**Phase III** -> https://github.com/traceloop/opentelemetry-mcp-server/pull/49
 ## Why I Chose This Issue
 
 I chose this issue because it addresses a real efficiency problem I find compelling: reducing token waste in AI agent workflows.
@@ -171,11 +171,11 @@ Introduce a `compact_json()` utility that recursively converts uniform arrays of
 
 ## Pull Request
 
-**PR Link:** [To be submitted — Phase III]
+**PR Link:** https://github.com/traceloop/opentelemetry-mcp-server/pull/49
 
 **PR Description:** [To be added on PR submission]
 
-**Status:** Phase II Complete — implementation done, PR pending
+**Status:** Phase III Complete — implementation done, PR pending
 
 ---
 
