@@ -1,17 +1,18 @@
 # AI301 Contribution
 ## Contribution [1]: Feature Proposal: Tool Response Compression for Token Optimization
 ## Contribution [2] : Issue Recreation: Reducing Token Waste in AI Agent Workflows
-
-**Contribution Number:** 2  
+## Contribution [3] : Issue Solution: Implementing Tool Response Compression for Token Optimization
+## Contribution [4] : PR Submission: Implementing Tool Response Compression for Token Optimization
+**Contribution Number:** 4  
 **Student:** Suhas Ramesh Vittal  
 **Issue:** https://github.com/traceloop/opentelemetry-mcp-server/issues/11 
-**Status:** Phase III Completed
+**Status:** Phase IV Completed
 
 ---
 
 **Phase I** -> https://github.com/Suhasrv2403/su26-ai301-contribution/blob/main/README.md
 **Phase II** -> https://github.com/Suhasrv2403/opentelemetry-mcp-server/blob/feat/tool-response-compression/CONTRIBUTION.md
-**Phase III** -> https://github.com/traceloop/opentelemetry-mcp-server/pull/49
+**Phase III & IV** -> https://github.com/traceloop/opentelemetry-mcp-server/pull/49
 ## Why I Chose This Issue
 
 I chose this issue because it addresses a real efficiency problem I find compelling: reducing token waste in AI agent workflows.
@@ -173,9 +174,19 @@ Introduce a `compact_json()` utility that recursively converts uniform arrays of
 
 **PR Link:** https://github.com/traceloop/opentelemetry-mcp-server/pull/49
 
-**PR Description:** [To be added on PR submission]
+**PR Description:** 
 
-**Status:** Phase III Complete — implementation done, PR pending
+I implemented tool response compression for the opentelemetry-mcp-server to reduce token consumption in AI agent 
+workflows. I created a compact_json() utility function that recursively converts uniform arrays of objects into a 
+compact column/row tabular format, eliminating repeated field names across response rows. I added a compress_responses 
+configuration option (enabled by default, toggleable via COMPRESS_RESPONSES env var) and integrated the compression 
+logic into all 8 high-impact tool functions. I wrote 17 unit tests covering compression correctness, losslessness, 
+edge cases, nested structures, and configuration behavior. After opening the PR, I addressed automated code review 
+feedback from CodeRabbit, fixing a recursion bug where nested arrays inside list items weren't being compressed, 
+tightening environment variable validation to avoid silently misinterpreting typos as disabling the feature, and 
+improving a test to validate the actual environment-parsing contract rather than mutating config directly.
+
+**Status:** Phase IV Complete — PR submitted
 
 ---
 
